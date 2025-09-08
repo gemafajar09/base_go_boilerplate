@@ -17,6 +17,7 @@ type Dependencies struct {
 	Logger      *zap.Logger
 	UserUsecase *usecase.UserUsecase
 	// tambah usecase lain disini nanti
+	AboutUsecase *usecase.AboutUsecase
 }
 
 func initDeps(db *gorm.DB) (*Dependencies, error) {
@@ -28,12 +29,13 @@ func initDeps(db *gorm.DB) (*Dependencies, error) {
 	}
 
 	// Setup repository dan usecase
-	userRepo := repository.NewUserRepository(db)
-	userUsecase := usecase.NewUserUsecase(userRepo)
+	userUsecase := usecase.NewUserUsecase(repository.NewUserRepository(db))
+	aboutUsecase := usecase.NewAboutUsecase(repository.NewAboutRepository(db))
 
 	return &Dependencies{
-		Logger:      logger,
-		UserUsecase: userUsecase,
+		Logger:       logger,
+		UserUsecase:  userUsecase,
+		AboutUsecase: aboutUsecase,
 	}, nil
 }
 
@@ -53,6 +55,7 @@ func NewRouter(cfg config.Config, db *gorm.DB) *gin.Engine {
 
 	authHandler := handler.NewAuthHandler(deps.UserUsecase)
 	userHandler := handler.NewUserHandler(deps.UserUsecase)
+	aboutHandler := handler.NewAboutHandler(deps.AboutUsecase)
 
 	// Public routes
 	r.GET("/health", handler.GetHealth)
@@ -69,6 +72,12 @@ func NewRouter(cfg config.Config, db *gorm.DB) *gin.Engine {
 	apiGroup.Use(middleware.JWTAuthMiddleware(cfg.JWT)) // pakai JWT middleware
 	{
 		apiGroup.GET("/profile", userHandler.GetProfile)
+
+		// about
+		apiGroup.GET("/about", aboutHandler.GetAbout)
+		apiGroup.POST("/about-create", aboutHandler.CreateAbout)
+		apiGroup.GET("/about-edit/:id", aboutHandler.EditAbout)
+		apiGroup.PUT("/about-update/:id", aboutHandler.UpdateAbout)
 	}
 
 	return r

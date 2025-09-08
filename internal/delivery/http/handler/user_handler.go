@@ -2,7 +2,6 @@ package handler
 
 import (
 	"go-project/internal/usecase"
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -18,8 +17,7 @@ func NewUserHandler(uc *usecase.UserUsecase) *UserHandler {
 
 func (h *UserHandler) GetProfile(c *gin.Context) {
 	userID, exists := c.Get("user_id")
-	log.Print(exists)
-	log.Print(userID)
+
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "User id not found"})
 		return

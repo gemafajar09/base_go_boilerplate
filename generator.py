@@ -725,13 +725,19 @@ func (r *userRepository) GetUserByEmail(email string) (domain.User, error) {
 
 env = '''
 SERVER_PORT=8080
+
 DB_USER=root
 DB_PASSWORD=
 DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_NAME=mydb
+
 GIN_MODE=release
 JWT_SECRET=secret_key
+
+TIME_FORMAT=02-01-2006 15:04:05
+TIME_ZONE=Asia/Jakarta
+
 '''
 
 taskfile_yaml = '''version: '3'
