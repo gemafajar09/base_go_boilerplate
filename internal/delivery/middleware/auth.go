@@ -13,7 +13,6 @@ import (
 func JWTAuthMiddleware(jwtSecret string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		jwtKey := []byte(viper.GetString("JWT_SECRET"))
-		// Ambil token dari header
 		tokenString := c.GetHeader("Authorization")
 		if tokenString == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Token is required"})
@@ -21,7 +20,6 @@ func JWTAuthMiddleware(jwtSecret string) gin.HandlerFunc {
 			return
 		}
 
-		// Hilangkan "Bearer " jika ada
 		tokenString = strings.TrimPrefix(tokenString, "Bearer ")
 
 		claims := &auth.CustomClaims{}

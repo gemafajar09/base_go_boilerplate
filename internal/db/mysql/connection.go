@@ -1,20 +1,21 @@
 package mysql
 
 import (
-    "fmt"
-    "gorm.io/driver/mysql"
-    "gorm.io/gorm"
+	"fmt"
+
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
-func NewMySQLConnection(user, password, host, dbname string, port int) (*gorm.DB, error) {
-    dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true",
-        user, password, host, port, dbname,
-    )
-    
-    db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
-    if err != nil {
-        return nil, err
-    }
+func NewPgConnection(user, password, host, dbname string, port int) (*gorm.DB, error) {
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=disable",
+		host, user, password, dbname, port,
+	)
 
-    return db, nil
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	if err != nil {
+		return nil, err
+	}
+
+	return db, nil
 }

@@ -11,23 +11,39 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type AuthHandler struct {
-	userUsecase *usecase.UserUsecase
+type AuthHandler interface {
+	Register(c *gin.Context)
+	Login(c *gin.Context)
 }
 
-func NewAuthHandler(uc *usecase.UserUsecase) *AuthHandler {
-	return &AuthHandler{userUsecase: uc}
+type authHandler struct {
+	uc usecase.UserUsecase
 }
 
-// Request body untuk register
+func NewAuthHandler(uc usecase.UserUsecase) *authHandler {
+	return &authHandler{uc: uc}
+}
+
 type RegisterRequest struct {
 	Name     string `json:"name" binding:"required"`
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required,min=6"`
 }
 
-// POST /register
-func (h *AuthHandler) Register(c *gin.Context) {
+type LoginRequest struct {
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required"`
+}
+
+// Register godoc
+// @Summary Daftarkan pengguna baru
+// @Description Buat akun pengguna baru
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body RegisterRequest true "Register request"
+// @Router /auth/register [post]
+func (h *authHandler) Register(c *gin.Context) {
 	var req RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, response.ErrorResponse{
@@ -42,10 +58,9 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		Name:     req.Name,
 		Email:    req.Email,
 		Password: req.Password,
-		Role:     domain.UserRole,
 	}
 
-	createdUser, err := h.userUsecase.Register(user)
+	createdUser, err := h.uc.Register(user)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, response.ErrorResponse{
 			Success: false,
@@ -56,20 +71,21 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"id":    createdUser.Id,
+		"id":    createdUser.ID,
 		"name":  createdUser.Name,
 		"email": createdUser.Email,
 	})
 }
 
-// Request body untuk login
-type LoginRequest struct {
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required"`
-}
-
-// POST /login
-func (h *AuthHandler) Login(c *gin.Context) {
+// Login godoc
+// @Summary Login user
+// @Description Otentikasi pengguna dan dapatkan token JWT
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body LoginRequest true "Login request"
+// @Router /auth/login [post]
+func (h *authHandler) Login(c *gin.Context) {
 	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, response.ErrorResponse{
@@ -80,7 +96,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	token, err := h.userUsecase.Login(req.Email, req.Password)
+	token, err := h.uc.Login(req.Email, req.Password)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, response.ErrorResponse{
 			Success: false,

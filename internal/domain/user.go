@@ -1,20 +1,16 @@
-package domain   
+package domain
 
-import "time"
+import (
+	"time"
+)
 
 type User struct {
-	Id        uint      `json:"id" gorm:"primaryKey"`
-	Name      string    `json:"name"`
-	Email     string    `json:"email" gorm:"unique;not null"`
-	Password  string    `json:"password"`
-	Role      Role      `json:"role" gorm:"type:enum('admin','user');default:'user'"`
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	Name      string    `gorm:"size:100;not null" json:"name"`
+	Email     string    `gorm:"size:100;unique" json:"email"`
+	Password  string    `gorm:"size:255;not null" json:"-"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+
+	CashTransactions []CashTransaction `gorm:"foreignKey:CreatedBy" json:"cash_transactions,omitempty"`
 }
-
-type Role string
-
-const (
-	AdminRole Role = "admin"
-	UserRole  Role = "user"
-)

@@ -8,10 +8,10 @@ import (
 
 type UserRepository interface {
 	GetUsers() ([]domain.User, error)
-	GetUserByID(id int) (domain.User, error)
+	GetUserByID(id uint) (domain.User, error)
 	CreateUser(user domain.User) (domain.User, error)
 	UpdateUser(user domain.User) (domain.User, error)
-	DeleteUser(id int) error
+	DeleteUser(id uint) error
 	GetUserByEmail(email string) (domain.User, error)
 }
 
@@ -29,7 +29,7 @@ func (r *userRepository) GetUsers() ([]domain.User, error) {
 	return users, err
 }
 
-func (r *userRepository) GetUserByID(id int) (domain.User, error) {
+func (r *userRepository) GetUserByID(id uint) (domain.User, error) {
 	var user domain.User
 	err := r.db.First(&user, id).Error
 	return user, err
@@ -45,7 +45,7 @@ func (r *userRepository) UpdateUser(user domain.User) (domain.User, error) {
 	return user, err
 }
 
-func (r *userRepository) DeleteUser(id int) error {
+func (r *userRepository) DeleteUser(id uint) error {
 	return r.db.Delete(&domain.User{}, id).Error
 }
 

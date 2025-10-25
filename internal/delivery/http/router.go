@@ -15,9 +15,8 @@ import (
 
 type Dependencies struct {
 	Logger      *zap.Logger
-	UserUsecase *usecase.UserUsecase
-	// tambah usecase lain disini nanti
-	AboutUsecase *usecase.AboutUsecase
+	UserUsecase usecase.UserUsecase
+	CashUsecase usecase.CashUsecase
 }
 
 func initDeps(db *gorm.DB) (*Dependencies, error) {
@@ -28,21 +27,19 @@ func initDeps(db *gorm.DB) (*Dependencies, error) {
 		return nil, err
 	}
 
-	// Setup repository dan usecase
 	userUsecase := usecase.NewUserUsecase(repository.NewUserRepository(db))
-	aboutUsecase := usecase.NewAboutUsecase(repository.NewAboutRepository(db))
+	cashUsecase := usecase.NewCashUsecase(repository.NewCashRepository(db))
 
 	return &Dependencies{
-		Logger:       logger,
-		UserUsecase:  userUsecase,
-		AboutUsecase: aboutUsecase,
+		Logger:      logger,
+		UserUsecase: userUsecase,
+		CashUsecase: cashUsecase,
 	}, nil
 }
 
 func NewRouter(cfg config.Config, db *gorm.DB) *gin.Engine {
 	r := gin.Default()
 
-	// Setup CORS
 	r.Use(middleware.CORSMiddleware())
 
 	deps, err := initDeps(db)
@@ -55,10 +52,7 @@ func NewRouter(cfg config.Config, db *gorm.DB) *gin.Engine {
 
 	authHandler := handler.NewAuthHandler(deps.UserUsecase)
 	userHandler := handler.NewUserHandler(deps.UserUsecase)
-	aboutHandler := handler.NewAboutHandler(deps.AboutUsecase)
-
-	// Public routes
-	r.GET("/health", handler.GetHealth)
+	cashHandler := handler.NewCashHandler(deps.CashUsecase)
 
 	// Auth routes group
 	authGroup := r.Group("/auth")
@@ -67,17 +61,18 @@ func NewRouter(cfg config.Config, db *gorm.DB) *gin.Engine {
 		authGroup.POST("/login", authHandler.Login)
 	}
 
-	// Protected routes group
 	apiGroup := r.Group("/api")
-	apiGroup.Use(middleware.JWTAuthMiddleware(cfg.JWT)) // pakai JWT middleware
+	apiGroup.Use(middleware.JWTAuthMiddleware(cfg.JWT))
 	{
+		// User routes
 		apiGroup.GET("/profile", userHandler.GetProfile)
+		apiGroup.GET("/get-users", userHandler.GetUsers)
 
-		// about
-		apiGroup.GET("/about", aboutHandler.GetAbout)
-		apiGroup.POST("/about-create", aboutHandler.CreateAbout)
-		apiGroup.GET("/about-edit/:id", aboutHandler.EditAbout)
-		apiGroup.PUT("/about-update/:id", aboutHandler.UpdateAbout)
+		// get cash transaction
+		apiGroup.POST("/cash/transactions", cashHandler.CreateTransaction)
+		apiGroup.GET("/cash/transactions", cashHandler.GetTransactions)
+		apiGroup.GET("/cash/balance", cashHandler.GetBalance)
+		apiGroup.GET("/cash/categories", cashHandler.GetCategories)
 	}
 
 	return r

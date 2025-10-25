@@ -9,6 +9,8 @@ import (
 func AutoMigrate(db *gorm.DB) error {
 	return db.AutoMigrate(
 		&domain.User{},
-		&domain.About{},
+		&domain.CashCategory{},
+		&domain.CashTransaction{},
+		&domain.CashBalance{},
 	)
 }

@@ -15,7 +15,7 @@ type CustomClaims struct {
 	jwt.RegisteredClaims
 }
 
-func GenerateToken(userID uint, email string, role string) (string, error) {
+func GenerateToken(userID uint, email string) (string, error) {
 	// Secret key untuk JWT
 	jwtKey := []byte(viper.GetString("JWT_SECRET"))
 	// Atur waktu expired token
@@ -25,7 +25,6 @@ func GenerateToken(userID uint, email string, role string) (string, error) {
 	claims := &CustomClaims{
 		UserID: userID,
 		Email:  email,
-		Role:   role,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

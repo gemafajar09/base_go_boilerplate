@@ -5,12 +5,25 @@ import (
 	"go-project/internal/db/mysql"
 	"go-project/internal/delivery/http"
 	"log"
+
+	_ "go-project/docs"
+
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
+// @title BUKU KAS API
+// @version 1.0
+// @description Ini adalah contoh API dengan Otentikasi JWT di Go menggunakan Swagger
+// @host localhost:3000
+// @BasePath /
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
 func main() {
 	cfg := config.LoadConfig()
 
-	db, err := mysql.NewMySQLConnection(
+	db, err := mysql.NewPgConnection(
 		cfg.DBUser,
 		cfg.DBPassword,
 		cfg.DBHost,
@@ -27,7 +40,8 @@ func main() {
 	}
 
 	port := cfg.ServerPort
-	r := http.NewRouter(cfg, db) // kirim db ke router
+	r := http.NewRouter(cfg, db)
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	if len(port) > 0 && port[0] != ':' {
 		port = ":" + port
 	}
